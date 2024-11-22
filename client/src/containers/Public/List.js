@@ -35,7 +35,7 @@ const List = ({ categoryCode }) => {
         <div className='w-full p-2 bg-white shadow-md rounded-md px-6'>
             <div className='flex items-center justify-between my-3'>
                 <h4 className='text-xl font-semibold'>Danh sách tin đăng</h4>
-                <span>Cập nhật: 12:05 25/08/2022</span>
+                <span>Cập nhật: 12:05 22/11/2024</span>
             </div>
             <div className='flex items-center gap-2 my-2'>
                 <span>Sắp xếp:</span>
@@ -44,17 +44,18 @@ const List = ({ categoryCode }) => {
             </div>
             <div className='items'>
                 {posts?.length > 0 && posts.map(item => {
+                    console.log()
                     return (
                         
                         <Item
                             key={item?.id}
                             address={item?.address}
                             attributes={item?.attributes}
-                            description={JSON.parse(item?.description)}
+                            description={item?.description}
                             images={item?.imagesId?.image}
                             star={+item?.star}
                             title={item?.title}
-                            user={item?.user}
+                            user={item?.userId}
                             id={item?.id}
                             islover={item.lovers?.uid === currentData?.id}
                             setUpdate={setUpdate}

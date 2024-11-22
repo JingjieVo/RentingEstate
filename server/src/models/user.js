@@ -25,6 +25,7 @@ UserSchema.pre('save', function (next) {
   }
   next();
 });
+UserSchema.set("id", true)
 
 const User = mongoose.models.User || mongoose.model('User', UserSchema);
 

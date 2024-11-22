@@ -22,14 +22,14 @@ const Wishlist = () => {
                 {wishlist?.map(el => (
                     <Item
                         key={el.id}
-                        address={el?.wishlistData?.address}
-                        attributes={el?.wishlistData?.attributes}
-                        description={el?.wishlistData?.description?.length > 0 ? el?.wishlistData?.description : JSON.parse(el?.wishlistData?.description)}
-                        images={JSON.parse(el?.wishlistData?.images?.image)}
-                        star={+el?.wishlistData?.star}
-                        title={el?.wishlistData?.title}
-                        user={el?.wishlistData?.user}
-                        id={el?.wishlistData?.id}
+                        address={el?.pid?.address}
+                        attributes={el?.pid?.attributesId}
+                        description={el?.wishlistData?.description}
+                        images={el?.pid?.imagesId?.image}
+                        star={+el?.pid?.star}
+                        title={el?.pid?.title}
+                        user={el?.pid?.userId}
+                        id={el?.pid?.id}
                         islover={el?.wishlistData?.lovers?.some(i => currentData?.id === i.uid)}
                         setUpdate={setUpdate}
                     />

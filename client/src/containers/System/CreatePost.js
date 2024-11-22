@@ -23,6 +23,7 @@ const CreatePost = ({ isEdit }) => {
 
     const { dataEdit } = useSelector(state => state.post)
     const [payload, setPayload] = useState(() => {
+        console.log(dataEdit)
         const initData = {
             categoryCode: dataEdit?.categoryCode || '',
             title: dataEdit?.title || '',
@@ -32,8 +33,8 @@ const CreatePost = ({ isEdit }) => {
             address: dataEdit?.address || '',
             priceCode: dataEdit?.priceCode || '',
             areaCode: dataEdit?.areaCode || '',
-            description: dataEdit?.description ? JSON.parse(dataEdit?.description) : '',
-            target: dataEdit?.overviews?.target || '',
+            description: dataEdit?.description ? dataEdit?.description : '',
+            target: dataEdit?.overviewId?.target || '',
             province: dataEdit?.province || ''
         }
         return initData
@@ -50,7 +51,7 @@ const CreatePost = ({ isEdit }) => {
     }, []);
     useEffect(() => {
         if (dataEdit) {
-            let images = JSON.parse(dataEdit?.images?.image)
+            let images = dataEdit?.images?.image
             images && setImagesPreview(images)
         }
 
@@ -109,6 +110,7 @@ const CreatePost = ({ isEdit }) => {
             target: payload.target || 'Tất cả',
             label: `${categories?.find(item => item.code === payload?.categoryCode)?.value} ${payload?.address?.split(',')[0]}`
         }
+        console.log(finalPayload)
         const result = validate(finalPayload, setInvalidFields)
         if (result === 0) {
             if (dataEdit && isEdit) {
@@ -210,13 +212,13 @@ const CreatePost = ({ isEdit }) => {
                     </div>
                 </div>
                 <div className='w-[30%] flex-none h-[300px] pt-12'>
-                    <Map
+                    {/* <Map
                         googleMapURL={`https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=geometry,drawing,places&key=${process.env.REACT_APP_MAP_API}`}
                         loadingElement={<div style={{ height: `100%` }} />}
                         containerElement={<div style={{ height: `100%` }} />}
                         mapElement={<div style={{ height: `100%` }} />}
                         coords={coords}
-                    />
+                    /> */}
                     <div className='mt-8 bg-orange-100 text-orange-900 rounded-md p-4'>
                         <h4 className='text-xl font-medium mb-4'>Lưu ý tin đăng</h4>
                         <ul className='text-sm list-disc pl-6 text-justify'>

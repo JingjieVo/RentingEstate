@@ -8,7 +8,7 @@ const CategorySchema = new mongoose.Schema({
   header: String,
   subheader: String,
 }, { timestamps: true });
-
+// PostSchema.set("code", true)
 const Category = mongoose.models.Category || mongoose.model('Category', CategorySchema);
 
 export default Category;

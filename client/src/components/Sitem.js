@@ -16,7 +16,7 @@ const Sitem = ({ title, price, image, createdAt, star, id }) => {
       stars.push(<GrStar className="star-item" size={18} color="yellow" />);
     return stars;
   };
-
+  // console.log(id)
   return (
     <Link
       to={`${path.DETAIL}${formatVietnameseToString(

@@ -23,6 +23,8 @@ const ManagePost = () => {
         const response = await apiGetReports({ status: 'Accepted', user: true })
         if (response.data.err === 0) {
             setReportPosts(response.data?.data?.rows)
+            console.log(reportPosts)
+            console.log(posts)
         }
     }
     useEffect(() => {
@@ -31,6 +33,7 @@ const ManagePost = () => {
 
     useEffect(() => {
         setPosts(postOfCurrent)
+        // console.log(posts)
     }, [postOfCurrent])
 
     useEffect(() => {
@@ -149,11 +152,12 @@ const ManagePost = () => {
                             <td>Chưa có bài đăng</td>
                         </tr>
                         : posts?.map(item => {
+                            // console.log(posts)
                             return (
                                 <tr className='text-center' key={item.id}>
                                     <td className='text-center py-4 border-b'>{item?.id}</td>
                                     <td className='text-center py-4 border-b'>{`${item?.title}`}</td>
-                                    <td className='text-center py-4 border-b'>{item?.attributes?.price}</td>
+                                    <td className='text-center py-4 border-b'>{item?.attributesId?.price}</td>
                                     <td className='text-center py-4 border-b'>{moment(item?.createdAt).format('DD/MM/YYYY')}</td>
                                     <td className='text-center py-4 border-b'>{moment(item?.expired).format('DD/MM/YYYY')}</td>
                                     <td className='text-center py-4 border-b'>
@@ -171,7 +175,7 @@ const ManagePost = () => {
                                             onChange={(e) => handleChangeRented(item?.status, item.id)}
                                         />
                                     </td>
-                                    <td className='text-center py-1 border-b'>
+                                    <td className='flex justify-center text-center py-1 border-b items-center'>
                                         {new Date(item?.expired).getTime() < new Date().getTime() && !item.expireds?.id && <Button
                                             text='Gia hạn'
                                             textColor='text-blue-500 hover:underline py-1'

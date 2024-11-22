@@ -5,12 +5,12 @@ import { formatVietnameseToString } from '../ultils/Common/formatVietnameseToStr
 import { path } from '../ultils/constant'
 import { apiUpdateWishlist } from '../services/post'
 import { toast } from 'react-toastify'
-
+import anonuser from "../assets/anon-avatar.png"
 
 const { GrStar, RiHeartFill, RiHeartLine, BsBookmarkStarFill } = icons
 
 const Item = ({ images, user, title, star, description, attributes, address, id, islover, setUpdate }) => {
-
+    const [isTym, setIsTym] = useState(false)
     const handleStar = (star) => {
         let stars = []
         for (let i = 1; i <= +star; i++) stars.push(<GrStar className='star-item' size={18} color='yellow' />)
@@ -22,8 +22,10 @@ const Item = ({ images, user, title, star, description, attributes, address, id,
         const response = await apiUpdateWishlist({ pid: id })
         if (response.data?.err === 0) {
             setUpdate(prev => !prev)
+            setIsTym(!isTym)
             toast.success(response.data.msg)
         }
+        
     }
     return (
         <div className='w-full flex border-t border-orange-600 py-4 relative'>
@@ -45,7 +47,7 @@ const Item = ({ images, user, title, star, description, attributes, address, id,
                     handleUpdateWishlist(e)
                 }}
             >
-                {islover ? <RiHeartFill size={26} color='red' /> : <RiHeartLine size={26} />}
+                {isTym ? <RiHeartFill size={26} color='red' /> : <RiHeartLine size={26} />}
             </div>
             <div className='w-3/5'>
                 <div className='flex justify-between gap-4 w-full'>
@@ -70,13 +72,13 @@ const Item = ({ images, user, title, star, description, attributes, address, id,
                 </p> */}
                 <div className='flex items-center my-5 justify-between'>
                     <div className=' flex items-center'>
-                        <img src="https://lnsel.com/wp-content/uploads/2018/12/anon-avatar-300x300.png" alt="avatar" className='w-[30px] h-[30px] object-cover rounded-full' />
+                        <img src={anonuser} alt="avatar" className='w-[30px] h-[30px] object-cover rounded-full' />
                         <p>{user?.name}</p>
                     </div>
                     <div className='flex items-center gap-1'>
                         <a
                             className='bg-blue-700 text-white p-1 rounded-md'
-                            href='/'
+                            href={`tel:${user?.phone}`}
                             target='_blank'
                         >
                             {`Gọi ${user?.phone}`}

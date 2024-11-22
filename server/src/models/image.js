@@ -3,7 +3,7 @@ import uniqid from 'uniqid';
 
 const ImageSchema = new mongoose.Schema({
   id: { type: String, unique: true, default: () => uniqid() },
-  image: String,
+  image: [{type: String}],
 }, { timestamps: true });
 
 const Image = mongoose.models.Image || mongoose.model('Image', ImageSchema);

@@ -9,6 +9,13 @@ import Category from './category.js';
 import Image from './image.js';
 import Overview from './overview.js';
 import User from './user.js';
+import Vote from './vote.js'
+import Wishlist from './wishlist.js';
+import Expired from './expired.js';
+import Report from './report.js';
+import Role from './role.js';
+import Visited from './visited.js';
+import Comment from './comment.js'
 
 export default {
   Post,
@@ -20,5 +27,12 @@ export default {
   Category,
   Image,
   Overview,
-  User
+  User,
+  Wishlist,
+  Vote,
+  Expired,
+  Report,
+  Role,
+  Visited,
+  Comment
 };

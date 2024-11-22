@@ -9,7 +9,7 @@ const PostSchema = new mongoose.Schema(
     labelCode: { type: String, ref: "Label" }, // Updated to String
     address: String,
     attributesId: { type: String, ref: "Attribute" }, // Updated to String
-    categoryCode: { type: String, ref: "Category" }, // Updated to String
+    categoryCode: String, // Updated to String
     priceCode: String,
     areaCode: String,
     provinceCode: String,
@@ -41,7 +41,7 @@ const PostSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-
+PostSchema.set("id", true)
 const Post = mongoose.models.Post || mongoose.model("Post", PostSchema);
 
 export default Post;

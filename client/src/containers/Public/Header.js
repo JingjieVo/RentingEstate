@@ -9,7 +9,6 @@ import * as actions from '../../store/actions'
 import menuManage from '../../ultils/menuManage'
 import menuAdmin from '../../ultils/menuAdmin'
 
-
 const { AiOutlinePlusCircle, AiOutlineLogout, BsChevronDown } = icons
 
 const Header = () => {

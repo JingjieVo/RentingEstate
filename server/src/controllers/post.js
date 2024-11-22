@@ -4,7 +4,7 @@ import db from "../models/index.js";
 import Post from "../models/post.js"; // Import model Post
 import Visited from "../models/visited.js"; // Import model Visited
 import User from "../models/user.js"; // Import model User
-
+import Vote from "../models/vote.js";
 export const getPosts = async (req, res) => {
   try {
     const response = await postService.getPostsService();
@@ -95,7 +95,7 @@ export const getPostsLimitAdmin = async (req, res) => {
   }
 };
 export const updatePost = async (req, res) => {
-  const { postId, overviewId, imagesId, attributesId, ...payload } = req.body;
+  const { postId, overviewId, imagesId, attributesId, categoryCode, label , ...payload } = req.body;
   const { id } = req.user;
   try {
     if (!postId || !id || !overviewId || !imagesId || !attributesId)
@@ -192,16 +192,16 @@ export const ratings = asyncHandler(async (req, res) => {
       mes: "Missing inputs",
     });
   }
-  const alreadyVote = await db.Vote.findOne({ where: { pid, uid } });
+  const alreadyVote = await Vote.findOne({ where: { pid, uid } });
 
   if (alreadyVote) {
-    const response = await db.Vote.update(req.body, { where: { pid, uid } });
-    const post = await db.Vote.findAll({ where: { pid }, raw: true });
+    const response = await Vote.update(req.body, { where: { pid, uid } });
+    const post = await Vote.find({ where: { pid }, raw: true });
     if (!post) {
-      await db.Post.update({ star: score }, { where: { id: pid } });
+      await Post.findOneAndUpdate({ star: score }, { where: { id: pid } });
     } else {
       const star = post?.reduce((sum, el) => sum + el.score, 0);
-      await db.Post.update(
+      await Post.update(
         { star: Math.round(star / post?.length) },
         { where: { id: pid } }
       );
@@ -211,13 +211,13 @@ export const ratings = asyncHandler(async (req, res) => {
       data: response ? response : "Cannot ratings",
     });
   } else {
-    const response = await db.Vote.create({ ...req.body, uid });
-    const post = await db.Vote.findAll({ where: { pid }, raw: true });
+    const response = await Vote.create({ ...req.body, uid });
+    const post = await Vote.find({ where: { pid }, raw: true });
     if (!post) {
-      await db.Post.update({ star: score }, { where: { id: pid } });
+      await Post.findOneAndUpdate({ star: score }, { where: { id: pid } });
     } else {
       const star = post?.reduce((sum, el) => sum + el.score, 0);
-      await db.Post.update(
+      await Post.findOneAndUpdate(
         { star: Math.round(star / post?.length) },
         { where: { id: pid } }
       );
@@ -276,7 +276,9 @@ export const getExpireds = async (req, res) => {
 };
 export const reportPost = async (req, res) => {
   try {
-    const { pid, reason, title, uid } = req.body;
+    const uid = req?.user?.id;
+    const { pid, reason, title } = req.body;
+    req.body.uid = uid;
     if (!reason || !pid || !title || !uid)
       return res.status(400).json({
         err: 1,
@@ -470,3 +472,5 @@ export const updatePostRented = async (req, res) => {
     });
   }
 };
+
+

@@ -12,7 +12,7 @@ const Home = () => {
 
     useEffect(() => {
         const handleScroll = (e) => {
-            if (window.pageYOffset >= 134) {
+            if (window.scrollY >= 134) {
                 navRef.current.style.cssText = `
                 position: fixed;
                 top: 0;

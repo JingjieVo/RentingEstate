@@ -58,7 +58,6 @@ export const getNewPosts = () => async (dispatch) => {
             dispatch({
                 type: actionTypes.GET_NEW_POST,
                 msg: response.data.msg,
-                newPosts: null
             })
         }
 
@@ -101,7 +100,7 @@ export const getPostsLimitAdmin = (query) => async (dispatch) => {
         if (response?.data.err === 0) {
             dispatch({
                 type: actionTypes.GET_POSTS_ADMIN,
-                posts: response.data.response?.rows,
+                posts: response.data.response,
                 count: response.data.response?.count
             })
         } else {

@@ -21,7 +21,7 @@ export const getOne = (id) => new Promise(async (resolve, reject) => {
 
 export const updateUser = (payload, id) => new Promise(async (resolve, reject) => {
     try {
-        const response = await User.findByIdAndUpdate(id, payload, { new: true });
+        const response = await User.findOneAndUpdate({id : id}, payload, { new: true });
         resolve({
             err: response ? 0 : 1,
             msg: response ? 'Updated' : 'Failed to update user.',

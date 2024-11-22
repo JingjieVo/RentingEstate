@@ -1,11 +1,16 @@
 import Post from "../models/post.js";
-import generateCode from "../ultis/generateCode.js"
-import generateDate from "../ultis/generateDate.js"
+import generateCode from "../ultis/generateCode.js";
+import generateDate from "../ultis/generateDate.js";
 import Attribute from "../models/attribute.js";
 import moment from "moment";
-import Overview from "../models/overview.js"
+import Overview from "../models/overview.js";
 import Image from "../models/image.js";
-
+import Report from "../models/report.js";
+import User from "../models/user.js";
+import Expired from "../models/expired.js";
+import Wishlist from "../models/wishlist.js";
+import Province from "../models/province.js";
+import Label from "../models/label.js";
 export const getPostsService = () =>
   new Promise(async (resolve, reject) => {
     try {
@@ -28,6 +33,31 @@ export const getPostsService = () =>
           select: "id name zalo phone",
           strictPopulate: false,
         })
+        .populate({
+          path: "votes",
+          foreignField: "id",
+          populate: {
+            path: "uid",
+            foreignField: "id",
+            select: "id name avatar",
+            strictPopulate: false,
+          },
+          strictPopulate: false,
+        })
+        .populate([
+          {
+            path: "comments",
+            foreignField: "id",
+            select: "id content",
+            populate: {
+              path: "uid",
+              foreignField: "id",
+              select: "id name avatar",
+              strictPopulate: false,
+            },
+            strictPopulate: false,
+          },
+        ])
         .select("id title star address description") // Select Post fields
         .lean();
 
@@ -75,8 +105,9 @@ export const getPostById = (pid) =>
         })
         .populate({
           path: "votes",
+          foreignField: "id",
           populate: {
-            path: "userData",
+            path: "uid",
             foreignField: "id",
             select: "id name avatar",
             strictPopulate: false,
@@ -85,8 +116,9 @@ export const getPostById = (pid) =>
         })
         .populate({
           path: "comments",
+          foreignField: "id",
           populate: {
-            path: "commentator",
+            path: "uid",
             foreignField: "id",
             select: "id name avatar",
             strictPopulate: false,
@@ -176,7 +208,7 @@ export const getPostsLimitService = async (
 // Service: Get new posts
 export const getNewPostService = async () => {
   try {
-    const response = await Post.find({})
+    const response = await Post.find()
       .sort({ createdAt: -1 })
       .limit(+process.env.LIMIT)
       .populate({
@@ -187,11 +219,43 @@ export const getNewPostService = async () => {
       })
       .populate({
         path: "attributesId",
-        foreignField: "id",
+        foreignField: "id", // Match by 'id'
         select: "id price acreage published hashtag",
         strictPopulate: false,
-      }).lean()
-      .select("id title star createdAt");
+      })
+      .populate({
+        path: "userId",
+        foreignField: "id", // Match by 'id'
+        select: "id name zalo phone",
+        strictPopulate: false,
+      })
+      .populate({
+        path: "votes",
+        foreignField: "id",
+        populate: {
+          path: "uid",
+          foreignField: "id",
+          select: "id name avatar",
+          strictPopulate: false,
+        },
+        strictPopulate: false,
+      })
+      .populate([
+        {
+          path: "comments",
+          foreignField: "id",
+          select: "id content",
+          populate: {
+            path: "uid",
+            foreignField: "id",
+            select: "id name avatar",
+            strictPopulate: false,
+          },
+          strictPopulate: false,
+        },
+      ])
+      .select("id title star address description") // Select Post fields
+      .lean();
 
     return {
       err: response ? 0 : 1,
@@ -204,91 +268,91 @@ export const getNewPostService = async () => {
 };
 import makeid from "uniqid";
 // Service: Create new post
-  export const createNewPostService = async (body, userId) => {
-    try {
-      const attributesId = makeid();
-      const imagesId = makeid();
-      const overviewId = makeid();
-      const labelCode = generateCode(body.label);
-      const hashtag = `#${Math.floor(Math.random() * Math.pow(10, 6))}`;
-      const currentDate = generateDate();
+export const createNewPostService = async (body, userId) => {
+  try {
+    const attributesId = makeid();
+    const imagesId = makeid();
+    const overviewId = makeid();
+    const labelCode = generateCode(body.label);
+    const hashtag = `#${Math.floor(Math.random() * Math.pow(10, 6))}`;
+    const currentDate = generateDate();
 
-      const newPost = new Post({
-        id: makeid(),
-        title: body.title,
-        expired: body.expired,
-        labelCode,
-        address: body.address || null,
-        attributesId,
-        categoryCode: body.categoryCode,
-        description: JSON.stringify(body.description) || null,
-        userId,
-        overviewId,
-        imagesId,
-        areaCode: body.areaCode || null,
-        priceCode: body.priceCode || null,
-        provinceCode: body?.province?.includes("Thành phố")
-          ? generateCode(body?.province?.replace("Thành phố ", ""))
-          : generateCode(body?.province?.replace("Tỉnh ", "")) || null,
-        priceNumber: body.priceNumber,
-        areaNumber: body.areaNumber,
-      });
+    const newPost = new Post({
+      id: makeid(),
+      title: body.title,
+      expired: body.expired,
+      labelCode,
+      address: body.address || null,
+      attributesId,
+      categoryCode: body.categoryCode,
+      description: JSON.stringify(body.description) || null,
+      userId: userId,
+      overviewId,
+      imagesId,
+      areaCode: body.areaCode || null,
+      priceCode: body.priceCode || null,
+      provinceCode: body?.province?.includes("Thành phố")
+        ? generateCode(body?.province?.replace("Thành phố ", ""))
+        : generateCode(body?.province?.replace("Tỉnh ", "")) || null,
+      priceNumber: body.priceNumber,
+      areaNumber: body.areaNumber,
+    });
 
-      await newPost.save();
+    await newPost.save();
 
-      const newAttribute = new Attribute({
-        id: attributesId,
-        price:
-          +body.priceNumber < 1
-            ? `${+body.priceNumber * 1000000} đồng/tháng`
-            : `${body.priceNumber} triệu/tháng`,
-        acreage: `${body.areaNumber} m2`,
-        published: moment(new Date()).format("DD/MM/YYYY"),
-        hashtag,
-      });
+    const newAttribute = new Attribute({
+      id: attributesId,
+      price:
+        +body.priceNumber < 1
+          ? `${+body.priceNumber * 1000000} đồng/tháng`
+          : `${body.priceNumber} triệu/tháng`,
+      acreage: `${body.areaNumber} m2`,
+      published: moment(new Date()).format("DD/MM/YYYY"),
+      hashtag,
+    });
 
-      await newAttribute.save();
+    await newAttribute.save();
 
-      const newImage = new Image({
-        id: imagesId,
-        image: JSON.stringify(body.images),
-      });
+    const newImage = new Image({
+      id: imagesId,
+      image: JSON.stringify(body.images),
+    });
 
-      await newImage.save();
+    await newImage.save();
 
-      const newOverview = new Overview({
-        id: overviewId,
-        code: hashtag,
-        area: body.label,
-        type: body?.category,
-        target: body?.target,
-        bonus: "Tin thường",
-        created: currentDate.today,
-        expired: currentDate.expireDay,
-      });
+    const newOverview = new Overview({
+      id: overviewId,
+      code: hashtag,
+      area: body.label,
+      type: body?.category,
+      target: body?.target,
+      bonus: "Tin thường",
+      created: currentDate.today,
+      expired: currentDate.expireDay,
+    });
 
-      await newOverview.save();
+    await newOverview.save();
 
-      const newProvince = await Province.findOneAndUpdate(
-        { value: body?.province?.replace("Thành phố ", "") },
-        { value: body?.province?.replace("Tỉnh ", "") },
-        { upsert: true, new: true }
-      );
+    const newProvince = await Province.findOneAndUpdate(
+      { value: body?.province?.replace("Thành phố ", "") },
+      { value: body?.province?.replace("Tỉnh ", "") },
+      { upsert: true, new: true }
+    );
 
-      const newLabel = await Label.findOneAndUpdate(
-        { code: labelCode },
-        { code: labelCode, value: body.label },
-        { upsert: true, new: true }
-      );
+    const newLabel = await Label.findOneAndUpdate(
+      { code: labelCode },
+      { code: labelCode, value: body.label },
+      { upsert: true, new: true }
+    );
 
-      return {
-        err: 0,
-        msg: "OK",
-      };
-    } catch (error) {
-      throw error;
-    }
-  };
+    return {
+      err: 0,
+      msg: "OK",
+    };
+  } catch (error) {
+    throw error;
+  }
+};
 
 // Service: Update post
 export const updatePost = async ({
@@ -296,18 +360,20 @@ export const updatePost = async ({
   overviewId,
   imagesId,
   attributesId,
+  categoryCode,
+  label,
   ...body
 }) => {
   try {
-    const labelCode = generateCode(body.label);
+    const labelCode = generateCode(label);
 
-    await Post.updateOne(
-      { _id: postId },
+    await Post.findOneAndUpdate(
+      { id: postId },
       {
         title: body.title,
         labelCode,
         address: body.address || null,
-        categoryCode: body.categoryCode,
+        categoryCode: categoryCode,
         description: JSON.stringify(body.description) || null,
         areaCode: body.areaCode || null,
         priceCode: body.priceCode || null,
@@ -319,8 +385,8 @@ export const updatePost = async ({
       }
     );
 
-    await Attribute.updateOne(
-      { _id: attributesId },
+    await Attribute.findOneAndUpdate(
+      { id: attributesId.id },
       {
         price:
           +body.priceNumber < 1
@@ -330,17 +396,17 @@ export const updatePost = async ({
       }
     );
 
-    await Image.updateOne(
-      { _id: imagesId },
+    await Image.findOneAndUpdate(
+      { id: imagesId },
       {
         image: JSON.stringify(body.images),
       }
     );
 
-    await Overview.updateOne(
-      { _id: overviewId },
+    await Overview.findOneAndUpdate(
+      { id: overviewId.id },
       {
-        area: body.label,
+        area: label,
         type: body?.category,
         target: body?.target,
       }
@@ -354,7 +420,7 @@ export const updatePost = async ({
 
     await Label.findOneAndUpdate(
       { code: labelCode },
-      { code: labelCode, value: body.label },
+      { code: labelCode, value: label },
       { upsert: true, new: true }
     );
 
@@ -384,18 +450,35 @@ export const deletePost = async (postId) => {
 // Service: Get wishlist
 export const getWishlist = async ({ uid }) => {
   try {
-    const response = await Wishlist.find({ uid }).populate({
-      path: "wishlistData",
-      populate: [
-        { path: "images", select: "image" },
-        { path: "attributes", select: "price acreage published hashtag" },
-        { path: "user", select: "name zalo phone" },
-        { path: "overviews" },
-        { path: "labelData", select: "-createdAt -updatedAt" },
-        { path: "category", select: "code value" },
-        { path: "lovers", select: "id" },
-      ],
-    });
+    const response = await Wishlist.find({ uid })
+      .populate({ path: "uid", select: "name zalo phone", foreignField: "id" })
+      .populate({
+        path: "pid",
+        foreignField: "id",
+        populate: [
+          {
+            path: "attributesId",
+            foreignField: "id",
+            strictPopulate: false,
+          },
+          {
+            path: "userId",
+            foreignField: "id",
+            strictPopulate: false,
+          },
+          {
+            path: "overviewId",
+            foreignField: "id",
+            strictPopulate: false,
+          },
+          {
+            path: "imagesId",
+            foreignField: "id",
+            select: "id image",
+            strictPopulate: false,
+          },
+        ],
+      });
 
     return {
       err: response ? 0 : 1,
@@ -410,21 +493,26 @@ export const getWishlist = async ({ uid }) => {
 // Service: Report post
 export const reportPost = async ({ pid, reason, title, uid }) => {
   try {
+    // Create a new report using Mongoose
     const response = await Report.create({
       pid,
       reason,
       title,
       uid,
+      seen: false, // Set default value if 'seen' should be false initially
+      status: "Pending", // Set default status if needed
     });
 
     return {
-      err: response ? 0 : 1,
-      data: response
-        ? "Đã gửi báo cáo vi phạm cho bài đăng này"
-        : "Something went wrong",
+      err: 0,
+      data: "Đã gửi báo cáo vi phạm cho bài đăng này",
     };
   } catch (error) {
-    throw error;
+    return {
+      err: 1,
+      data: "Something went wrong",
+      error: error.message,
+    };
   }
 };
 // Service: Expired posts
@@ -584,3 +672,268 @@ export const expiredPostNotificationService = async () => {
     throw error;
   }
 };
+
+export const getReports = async (
+  { page = 1, limit, order, user, ...query },
+  uid
+) => {
+  try {
+    const queries = {};
+    const step = page - 1;
+    const lim = +limit || +process.env.LIMIT_ADMIN;
+    queries.skip = step * lim;
+    queries.limit = lim;
+
+    // Handling sorting (order by default is in ascending, descending if '-order')
+    const sortOrder = order
+      ? { [order.replace("-", "")]: order.startsWith("-") ? -1 : 1 }
+      : {};
+
+    // Apply filtering for user if provided
+    if (user) {
+      query.uid = uid;
+      query.seen = false;
+    }
+    // Find reports with pagination and sorting, and populate Post and User references
+    const response = await Report.find({ uid: uid })
+      // .sort(sortOrder)
+      // .skip(queries.skip)
+      // .limit(queries.limit)
+      .populate({
+        path: "pid",
+        select: "id title",
+        foreignField: "id",
+        populate: {
+          path: "userId",
+          select: "id name",
+          foreignField: "id",
+          model: "User",
+          strictPopulate: false,
+        },
+
+        model: "Post",
+        strictPopulate: false,
+      })
+      .populate({
+        path: "uid",
+        select: "id name",
+        foreignField: "id",
+        strictPopulate: false,
+      });
+    // .exec();
+
+    const totalReports = await Report.countDocuments(query);
+
+    return {
+      err: 0,
+      data: { count: totalReports, rows: response },
+    };
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getExpireds = async ({ page, limit, order, ...query }) => {
+  try {
+    const step = !page ? 0 : +page - 1;
+    const lim = +limit || +process.env.LIMIT_ADMIN;
+
+    // Sorting order
+    const sortOrder = order ? { [order]: 1 } : {};
+
+    const response = await Expired.find(query)
+      .populate({ path: "pid", select: "id title expired", model: "Post" }) // Populate Post data
+      .populate({ path: "uid", select: "id name avatar phone", model: "User" }) // Populate User data
+      .sort(sortOrder)
+      .skip(step * lim)
+      .limit(lim)
+      .exec();
+
+    const totalCount = await Expired.countDocuments(query); // Total count of matching documents
+
+    return {
+      err: response.length > 0 ? 0 : 1,
+      data:
+        response.length > 0
+          ? { items: response, totalCount }
+          : "Something went wrong",
+    };
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const updateReport = ({ rid, status, pid }) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      // Update the status of the report using Mongoose's `findByIdAndUpdate`
+      const report = await Report.findOneAndUpdate(
+        { id: rid },
+        { status },
+        { new: true } // This option returns the modified document
+      );
+
+      if (!report) {
+        return reject(new Error("Report not found"));
+      }
+
+      // If the status is 'Accepted', delete the related post
+      if (status === "Accepted") {
+        const post = await Post.findOneAndDelete({ id: pid });
+        if (!post) {
+          return reject(new Error("Post not found"));
+        }
+      }
+
+      resolve({
+        err: 0,
+        data: "Report status updated successfully, and post deleted if Accepted",
+      });
+    } catch (error) {
+      reject({
+        err: 1,
+        msg: "Something went wrong: " + error.message,
+      });
+    }
+  });
+
+export const deleteReport = (rid) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      // Delete the report by its ID using Mongoose's `findByIdAndDelete`
+      const report = await Report.findOneAndDelete({ id: rid });
+
+      // If no report is found, return an error
+      if (!report) {
+        return reject({
+          err: 1,
+          data: "Report not found or already deleted",
+        });
+      }
+
+      resolve({
+        err: 0,
+        data: "Report has been deleted successfully",
+      });
+    } catch (error) {
+      reject({
+        err: 1,
+        msg: "Something went wrong: " + error.message,
+      });
+    }
+  });
+
+export const updateWishlist = ({ pid, uid }) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      // Check if the item already exists in the wishlist
+      const already = await Wishlist.findOne({ pid, uid });
+
+      if (already) {
+        // If the item is already in the wishlist, remove it (equivalent to `destroy` in Sequelize)
+        const response = await Wishlist.deleteOne({ pid, uid });
+
+        resolve({
+          err: response.deletedCount > 0 ? 0 : 1,
+          msg:
+            response.deletedCount > 0
+              ? "Removed from your wishlist"
+              : "Something went wrong",
+        });
+      } else {
+        // If the item is not in the wishlist, add it (equivalent to `create` in Sequelize)
+        const response = await Wishlist.create({ pid, uid });
+
+        resolve({
+          err: response ? 0 : 1,
+          msg: response ? "Added to your wishlist" : "Something went wrong",
+        });
+      }
+    } catch (error) {
+      reject({
+        err: 1,
+        msg: "Something went wrong: " + error.message,
+      });
+    }
+  });
+export const getPostsLimitAdminService = (page, id, { status, ...query }) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      let offset = !page || +page <= 1 ? 0 : +page - 1;
+      const queries = { ...query, userId: id };
+
+      // Expired status conditions
+      if (+status === 2) queries.expired = { $lt: new Date() };
+      if (+status === 1) queries.expired = { $gte: new Date() };
+
+      // Fetching the count and paginated results
+      const response = await Post.find(queries)
+        .skip(offset * +process.env.LIMIT)
+        .limit(+process.env.LIMIT)
+        .sort({ createdAt: -1 })
+        .populate({
+          path: "imagesId",
+          foreignField: "id", // Match by 'id'
+          select: "id image", // Select specific fields
+          strictPopulate: false,
+        })
+        .populate({
+          path: "attributesId",
+          foreignField: "id",
+          select: "id price acreage published hashtag",
+          strictPopulate: false,
+        })
+        .populate({
+          path: "userId",
+          select: "name zalo phone",
+          foreignField: "id", // Match by 'id'
+          strictPopulate: false,
+        })
+        .populate({
+          path: "overviewId",
+          select: "id code area type target bonus created expired",
+          foreignField: "id", // Match by 'id'
+          strictPopulate: false,
+        })
+        .populate({
+          path: "labelCode",
+          select: "-createdAt -updatedAt",
+          foreignField: "id", // Match by 'id'
+          strictPopulate: false,
+        })
+        .populate({
+          path: "categoryCode",
+          select: "code value",
+          foreignField: "id", // Match by 'id'
+          strictPopulate: false,
+        })
+        .lean();
+
+      resolve({
+        err: response ? 0 : 1,
+        msg: response ? "OK" : "Getting posts failed.",
+        response,
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+
+export const updatePostRented = ({ id, status }) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      // Update the post with the provided status
+      const response = await Post.findOneAndUpdate(
+        { id }, // Find post by custom `id` field
+        { status }, // Update the status
+        { new: true } // Return the updated document
+      );
+
+      resolve({
+        err: response ? 0 : 1,
+        data: response ? "Đã cập nhật" : "Something went wrong",
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
