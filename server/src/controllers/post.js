@@ -173,7 +173,7 @@ export const requestExpired = async (req, res) => {
         err: 1,
         msg: "Missing inputs",
       });
-    const days = days || 15;
+    const days = req.body.days || 15;
     const response = await postService.requestExpired({ ...req.body, uid: id });
     return res.status(200).json(response);
   } catch (error) {

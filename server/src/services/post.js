@@ -285,7 +285,7 @@ export const createNewPostService = async (body, userId) => {
       address: body.address || null,
       attributesId,
       categoryCode: body.categoryCode,
-      description: JSON.stringify(body.description) || null,
+      description: body.description || null,
       userId: userId,
       overviewId,
       imagesId,
@@ -315,7 +315,7 @@ export const createNewPostService = async (body, userId) => {
 
     const newImage = new Image({
       id: imagesId,
-      image: JSON.stringify(body.images),
+      image: body.images,
     });
 
     await newImage.save();
@@ -436,7 +436,7 @@ export const updatePost = async ({
 // Service: Delete post
 export const deletePost = async (postId) => {
   try {
-    const response = await Post.deleteOne({ _id: postId });
+    const response = await Post.deleteOne({ id: postId });
 
     return {
       err: response.deletedCount > 0 ? 0 : 1,
@@ -695,10 +695,10 @@ export const getReports = async (
       query.seen = false;
     }
     // Find reports with pagination and sorting, and populate Post and User references
-    const response = await Report.find({ uid: uid })
+    const response = await Report.find()
       // .sort(sortOrder)
       // .skip(queries.skip)
-      // .limit(queries.limit)
+      .limit(queries.limit)
       .populate({
         path: "pid",
         select: "id title",
@@ -742,8 +742,18 @@ export const getExpireds = async ({ page, limit, order, ...query }) => {
     const sortOrder = order ? { [order]: 1 } : {};
 
     const response = await Expired.find(query)
-      .populate({ path: "pid", select: "id title expired", model: "Post" }) // Populate Post data
-      .populate({ path: "uid", select: "id name avatar phone", model: "User" }) // Populate User data
+      .populate({
+        path: "pid",
+        select: "id title expired",
+        model: "Post",
+        foreignField: "id",
+      }) // Populate Post data
+      .populate({
+        path: "uid",
+        select: "id name avatar phone",
+        model: "User",
+        foreignField: "id",
+      }) // Populate User data
       .sort(sortOrder)
       .skip(step * lim)
       .limit(lim)
@@ -932,6 +942,48 @@ export const updatePostRented = ({ id, status }) =>
       resolve({
         err: response ? 0 : 1,
         data: response ? "Đã cập nhật" : "Something went wrong",
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+export const requestExpired = (data) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      const response = await Expired.create({ ...data, status: "Pending" });
+      resolve({
+        err: response ? 0 : 1,
+        msg: response
+          ? `Đã gửi yêu cầu gia hạn. Chủ trọ hãy liên hệ admin thanh toán số tiền gia hạn đã đăng ký nha~`
+          : "Something went wrong",
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+
+export const plusExpired = ({ pid, days, status, eid }) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      const newExpiryDate = new Date(
+        Date.now() + Number(days) * 24 * 3600 * 1000
+      );
+      console.log(newExpiryDate)
+      // Updating both Post and Expired documents simultaneously
+      const [postResponse, expiredResponse] = await Promise.all([
+        Post.findOneAndUpdate({id : pid}, { expired: newExpiryDate }), // Update expiration date for the post
+        Expired.findOneAndUpdate({id : eid}, { status }), // Update status for the Expired entry
+      ]);
+
+      const postUpdated = postResponse !== null;
+      const expiredUpdated = expiredResponse !== null;
+
+      resolve({
+        err: postUpdated && expiredUpdated ? 0 : 1,
+        msg:
+          postUpdated && expiredUpdated
+            ? `Đã gia hạn thêm ${days} ngày cho bài đăng tính từ ngày ${new Date().toLocaleDateString()}`
+            : "Không thể gia hạn bài đăng.",
       });
     } catch (error) {
       reject(error);

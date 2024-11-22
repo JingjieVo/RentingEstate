@@ -6,7 +6,7 @@ const PostSchema = new mongoose.Schema(
     id: { type: String, unique: true, default: () => uniqid() }, // Custom ID using uniqid
     title: String,
     star: String,
-    labelCode: { type: String, ref: "Label" }, // Updated to String
+    labelCode: String, // Updated to String
     address: String,
     attributesId: { type: String, ref: "Attribute" }, // Updated to String
     categoryCode: String, // Updated to String
@@ -41,7 +41,7 @@ const PostSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-PostSchema.set("id", true)
+PostSchema.set("id", true);
 const Post = mongoose.models.Post || mongoose.model("Post", PostSchema);
 
 export default Post;

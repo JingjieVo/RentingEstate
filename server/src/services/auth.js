@@ -24,7 +24,7 @@ export const registerService = ({ phone, password, name, email }) => new Promise
                 id: makeid(),
                 zalo: phone,
                 email,
-                role: 'R2'
+                role: 'R3'
             });
             await newUser.save();
             const token = jwt.sign({ id: newUser.id, phone: newUser.phone, role: newUser.role }, process.env.SECRET_KEY, { expiresIn: '2d' });

@@ -189,7 +189,7 @@ const ManageReport = () => {
                     index % 2 === 0 ? "" : "bg-gray-100"
                   } m-auto`}
                 >
-                  {item?.status !== "Pending" && (
+                  {item?.status !== "Pendin" && (
                     <span
                       className="p-2 cursor-pointer text-blue-500 hover:underline"
                       onClick={() => deletePost(item.id)}

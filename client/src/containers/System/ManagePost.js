@@ -23,8 +23,8 @@ const ManagePost = () => {
         const response = await apiGetReports({ status: 'Accepted', user: true })
         if (response.data.err === 0) {
             setReportPosts(response.data?.data?.rows)
-            console.log(reportPosts)
-            console.log(posts)
+            // console.log(reportPosts)
+            // console.log(posts)
         }
     }
     useEffect(() => {
@@ -71,8 +71,8 @@ const ManagePost = () => {
     }
     return (
         <div className='flex flex-col gap-6'>
-            {isExpired && <div onClick={() => setIsExpired(null)} className='absolute top-0 left-0 bottom-0 right-0 bg-overlay-30 flex justify-center items-center'>
-                <div onClick={e => e.stopPropagation()} className='p-8 bg-white w-[600px] rounded-md flex flex-col gap-2'>
+            {isExpired && <div onClick={() => setIsExpired(null)} className='absolute z-50 top-0 left-0 bottom-0 right-0 bg-overlay-30 flex justify-center items-center'>
+                <div onClick={e => e.stopPropagation()} className=' p-8 bg-white w-[600px] rounded-md flex flex-col gap-2'>
                     <p className='p-2 border-blue-500 border rounded-md text-justify text-sm bg-blue-100 text-blue-800'>
                         Gia hạn ngày đăng bài, người đăng có thể chọn 2 phương án dưới đây:
                         <ul className='italic'>
@@ -175,7 +175,7 @@ const ManagePost = () => {
                                             onChange={(e) => handleChangeRented(item?.status, item.id)}
                                         />
                                     </td>
-                                    <td className='flex justify-center text-center py-1 border-b items-center'>
+                                    <td className='flex justify-center text-center py-4 border-b items-center h-full'>
                                         {new Date(item?.expired).getTime() < new Date().getTime() && !item.expireds?.id && <Button
                                             text='Gia hạn'
                                             textColor='text-blue-500 hover:underline py-1'
