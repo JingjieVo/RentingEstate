@@ -695,6 +695,65 @@ export const getReports = async (
       query.seen = false;
     }
     // Find reports with pagination and sorting, and populate Post and User references
+    const response = await Report.find({uid : uid})
+      // .sort(sortOrder)
+      // .skip(queries.skip)
+      .limit(queries.limit)
+      .populate({
+        path: "pid",
+        select: "id title",
+        foreignField: "id",
+        populate: {
+          path: "userId",
+          select: "id name",
+          foreignField: "id",
+          model: "User",
+          strictPopulate: false,
+        },
+
+        model: "Post",
+        strictPopulate: false,
+      })
+      .populate({
+        path: "uid",
+        select: "id name",
+        foreignField: "id",
+        strictPopulate: false,
+      });
+    // .exec();
+
+    const totalReports = await Report.countDocuments(query);
+
+    return {
+      err: 0,
+      data: { count: totalReports, rows: response },
+    };
+  } catch (error) {
+    throw error;
+  }
+};
+export const getReportsAdmin = async (
+  { page = 1, limit, order, user, ...query },
+  uid
+) => {
+  try {
+    const queries = {};
+    const step = page - 1;
+    const lim = +limit || +process.env.LIMIT_ADMIN;
+    queries.skip = step * lim;
+    queries.limit = lim;
+
+    // Handling sorting (order by default is in ascending, descending if '-order')
+    const sortOrder = order
+      ? { [order.replace("-", "")]: order.startsWith("-") ? -1 : 1 }
+      : {};
+
+    // Apply filtering for user if provided
+    if (user) {
+      query.uid = uid;
+      query.seen = false;
+    }
+    // Find reports with pagination and sorting, and populate Post and User references
     const response = await Report.find()
       // .sort(sortOrder)
       // .skip(queries.skip)
@@ -989,3 +1048,17 @@ export const plusExpired = ({ pid, days, status, eid }) =>
       reject(error);
     }
   });
+
+  export const seenReport = (uid) => new Promise(async (resolve, reject) => {
+    try {
+      const response = await Report.updateMany({ uid : uid }, { seen: true });
+  
+      resolve({
+        err: response.nModified > 0 ? 0 : 1,
+        data: response.nModified > 0 ? 'Đã xóa bài đăng vi phạm' : 'Something went wrong',
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+  

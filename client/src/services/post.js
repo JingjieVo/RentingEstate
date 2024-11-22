@@ -180,6 +180,11 @@ export const apiGetReports = (params) => axiosConfig({
     method: 'get',
     params
 })
+export const apiGetReportsAdmin = (params) => axiosConfig({
+    url: 'api/v1/post/get-rp-admin',
+    method: 'get',
+    params
+})
 export const apiUpdateReport = (data) => axiosConfig({
     url: 'api/v1/post/update-rp',
     method: 'put',

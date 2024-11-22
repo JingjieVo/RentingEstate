@@ -278,7 +278,7 @@ export const reportPost = async (req, res) => {
   try {
     const uid = req?.user?.id;
     const { pid, reason, title } = req.body;
-    req.body.uid = uid;
+    // req.body.uid = uid;
     if (!reason || !pid || !title || !uid)
       return res.status(400).json({
         err: 1,
@@ -297,6 +297,19 @@ export const getReports = async (req, res) => {
   try {
     const uid = req?.user?.id;
     const response = await postService.getReports(req.query, uid);
+    return res.status(200).json(response);
+  } catch (error) {
+    return res.status(500).json({
+      err: -1,
+      msg: "Failed at post controller: " + error,
+    });
+  }
+};
+
+export const getReportsAdmin = async (req, res) => {
+  try {
+    const uid = req?.user?.id;
+    const response = await postService.getReportsAdmin(req.query, uid);
     return res.status(200).json(response);
   } catch (error) {
     return res.status(500).json({

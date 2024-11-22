@@ -44,6 +44,7 @@ const DetailPost = () => {
       if (response?.data?.err === 0) setPost(response.data.response);
     };
     fetchPost();
+    console.log(post)
   }, []);
   // useEffect(() => {
   //     if (post && post.address) {
@@ -89,7 +90,7 @@ const DetailPost = () => {
             pid={isReport?.id}
             setIsReport={setIsReport}
             title={isReport?.title}
-            uid={isReport?.userId}
+            uid={isReport?.userId.id}
           />
         </div>
       )}

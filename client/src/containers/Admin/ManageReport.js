@@ -4,6 +4,7 @@ import {
   apiUpdateReport,
   apiGetReports,
   apiRemoveReport,
+  apiGetReportsAdmin,
 } from "../../services";
 import moment from "moment";
 import { useSearchParams, Link } from "react-router-dom";
@@ -18,7 +19,7 @@ const ManageReport = () => {
   const [reports, setReports] = useState(null);
   const [isChangeStatus, setIsChangeStatus] = useState(null);
   const fetchReports = async (searchParamsObject) => {
-    const response = await apiGetReports(searchParamsObject);
+    const response = await apiGetReportsAdmin(searchParamsObject);
     if (response.data?.err === 0) setReports(response.data?.data);
   };
   useEffect(() => {
